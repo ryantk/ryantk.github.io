@@ -36,11 +36,7 @@
     display: none;
   }
 
-  #refactoring:target {
-    display: block;
-  }
-
-  #oop:target {
+  #docker:target {
     display: block;
   }
 </style>
@@ -54,67 +50,44 @@
 
 <nav class="divide-after">
   <ul class="choose-topic">
-    <li><a href="#oop">object oriented design</a></li>
+    <li><a href="#docker">docker</a></li>
   </ul>
 
-  <div id="oop" class="topic-results">
-    <h4>on object oriented design...</h4>
+  <div id="docker" class="topic-results">
+    <h4>on docker...</h4>
     <ul>
-      <li><a href="#post-1-domain-context-interaction">Domain Context Interaction Basics</a></li>
+      <li><a href="#post-1-docker-debugging-rails-in-docker">Debugging rails in docker as you would expect</a></li>
     </ul>
   </div>
 </nav>
 
-<article id="post-1-domain-context-interaction">
-  <h2>Domain Context Interaction Basics</h2>
+<article id="post-1-docker-debugging-rails-in-docker">
+  <h2>Debugging rails in docker as you would expect</h2>
 
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-  tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-  consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-  cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-  proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>The main problem with using ruby's debugger on a running container is that you (by default) only see the output of the container's logs, you dont have STDIN. To enable this we can enable "tty" and "keep stdin open" flags.</p>
 
-  <pre><code class="language-ruby">
-class BecomeFriends
-  def initialize(user_id, other_user_id)
-    @user       = User.find(user_id)
-    @other_user = User.find(other_user_id)
+  <h3>When running an individual container</h3>
 
-    @user.extend(FriendMakerRole)
-  end
+  <p><code data-language="language-bash">$ docker run|exec -it container_name</code></p>
+  <p>With <b>-it</b> being the important bits.</p>
 
-  def execute
-    @user.become_friends_with(@other_user)
-  end
+  <h3>When running from docker-compose</h3>
 
-  def self.build_new_for(user)
-    Friendship.new(user_id: user)
-  end
+  <pre><code data-language="language-yaml">
+# docker-compose.yml
+my_service_name:
+  # other config ...
+  tty: true
+  stdin_open: true
+  # other config ...</code>
+  </pre>
 
-  module FriendMakerRole
-    def become_friends_with(other_user)
-      Friendship.create(user_1: other_user, user_2: self)
-    end
-  end
-end
+  <p>Compose users need to attach to the container to interact with the debugger. Make sure to attach before your code triggers the debugger.</p>
 
-class FriendshipsController < ApplicationController
-  def edit
-    @friendship = BecomeFriends.build_new_for(current_user)
-  end
+  <p>To attach find your container id with <code data-language="language-bash">docker ps</code> then <code data-language="language-bash">docker attach container_id</code></p>
 
-  def create
-    @friendship = BecomeFriends.new(current_user.id, params[:user_id]).execute
+  <p>Happy debugging!</p>
 
-    if @friendship
-      redirect_to action: :index, notice: 'Made friends!'
-    else
-      render :edit
-    end
-  end
-end
-  </code></pre>
 </article>
 
 <script type="text/javascript" src="prism.js"></script>
